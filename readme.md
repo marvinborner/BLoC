@@ -56,5 +56,5 @@ A possible encoding in BLoC:
 | 0x16 | 0x26 | `N` in BLC                                                                 |
 | 0x26 | 0x32 | `000101011<M>001<N>1<M>1<N>`, where `<M>=0` and `<N>=1` are 2 byte indices |
 
-Even using this small example BLoC uses less space than BLC (0x32 vs.
-0x42 bytes).
+Even in this small example BLoC uses less space than BLC (0x32 vs. 0x42
+bytes).
