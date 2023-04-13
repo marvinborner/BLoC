@@ -25,7 +25,7 @@ void free_term(struct term *term)
 		free(term);
 		break;
 	default:
-		fprintf(stderr, "Invalid type %d\n", term->type);
+		fprintf(stderr, "invalid type %d\n", term->type);
 	}
 }
 

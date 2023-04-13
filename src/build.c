@@ -74,7 +74,6 @@ void write_bloc(struct term *term, const char *path)
 	write_bblc(N, file);
 
 	// TODO
-	short table_index = 0;
 	char byte = 0;
 	int bit = 0;
 	write_bit(0, file, &byte, &bit);

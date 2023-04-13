@@ -31,6 +31,8 @@ following derivation of normal bit-encoded BLC:
 | 1<sup>i+1</sup>0 | bruijn index `i`              |
 | 011I             | 2 byte index to an entry      |
 
+The final program will be in the last entry.
+
 ## Example
 
 Let `E` be some kind of expression like `E=\x.(((M (\y.N)) M) N)`, where
@@ -44,13 +46,13 @@ A possible encoding in BLoC:
 | from | to   | content                                                                               |
 |:-----|:-----|:--------------------------------------------------------------------------------------|
 | 0x00 | 0x04 | “BLoC”                                                                                |
-| 0x04 | 0x06 | number of entries: 2                                                                  |
-| 0x06 | 0x16 | encoded `M`                                                                           |
-| 0x16 | 0x26 | encoded `N`                                                                           |
-| 0x26 | 0x33 | `00010010010011<M>00011<N>011<M>011<N>`, where `<M>=0` and `<N>=1` are 2 byte indices |
+| 0x04 | 0x06 | number of entries: 3                                                                  |
+| 0x06 | 0x17 | encoded `M`: gets a bit longer due to different encoding                              |
+| 0x17 | 0x28 | encoded `N`: gets a bit longer due to different encoding                              |
+| 0x28 | 0x35 | `00010010010011<M>00011<N>011<M>011<N>`, where `<M>=0` and `<N>=1` are 2 byte indices |
 
 Even in this small example BLoC uses less space than BLC (0x33 vs. 0x42
-bytes). Depending on the values of `M` and `N`, this could have
+bytes). Depending on the content of `M` and `N`, this could have
 potentially been compressed even more.
 
 The compressor in this project uses Merkle trees to accomplish this.

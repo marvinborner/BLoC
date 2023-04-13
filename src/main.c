@@ -8,6 +8,7 @@
 
 #include <term.h>
 #include <print.h>
+#include <tree.h>
 #include <parse.h>
 #include <build.h>
 #include <free.h>
@@ -69,30 +70,31 @@ static char *read_file(const char *path)
 
 int main(int argc, char **argv)
 {
-	/* if (argc < 2) { */
-	/* 	fprintf(stderr, "Invalid arguments\n"); */
-	/* 	return 1; */
-	/* } */
+	if (argc < 2) {
+		fprintf(stderr, "Invalid arguments\n");
+		return 1;
+	}
 
-	/* char *input; */
-	/* if (argv[1][0] == '-') { */
-	/* 	input = read_stdin(); */
-	/* } else { */
-	/* 	input = read_file(argv[1]); */
-	/* } */
+	char *input;
+	if (argv[1][0] == '-') {
+		input = read_stdin();
+	} else {
+		input = read_file(argv[1]);
+	}
 
-	/* if (!input) */
-	/* 	return 1; */
+	if (!input)
+		return 1;
 
-	/* struct term *parsed = parse_blc(input); */
-	/* print_bruijn(parsed); */
+	struct term *parsed = parse_blc(input);
+	print_bruijn(parsed);
 
-	write_bloc(0, "test.bloc");
+	tree_merge_duplicates(parsed);
 
-	const char *input = read_file("test.bloc");
-	struct bloc_parsed *bloc = parse_bloc(input);
-	struct term *term = from_bloc(bloc);
-	print_blc(term);
+	/* write_bloc(0, "test.bloc"); */
+	/* const char *input = read_file("test.bloc"); */
+	/* struct bloc_parsed *bloc = parse_bloc(input); */
+	/* struct term *term = from_bloc(bloc); */
+	/* print_blc(term); */
 
 	/* free_term(term); // TODO: Fix sharing user-after-free */
 

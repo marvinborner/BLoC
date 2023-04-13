@@ -10,14 +10,10 @@
 struct bloc_header {
 	char identifier[BLOC_IDENTIFIER_LENGTH];
 	short length;
-	void *data;
+	void *entries;
 } __attribute__((packed));
 
 struct bloc_entry {
-	void *expression;
-} __attribute__((packed));
-
-struct bloc_structure {
 	void *expression;
 } __attribute__((packed));
 
