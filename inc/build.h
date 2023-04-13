@@ -5,8 +5,8 @@
 #define BLOC_BUILD_H
 
 #include <spec.h>
-#include <term.h>
+#include <tree.h>
 
-void write_bloc(struct term *term, const char *path);
+void write_bloc(struct list *table, const char *path);
 
 #endif

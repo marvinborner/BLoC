@@ -5,8 +5,10 @@
 #define BLOC_PRINT_H
 
 #include <term.h>
+#include <parse.h>
 
 void print_bruijn(struct term *term);
 void print_blc(struct term *term);
+void print_bloc(struct bloc_parsed *bloc);
 
 #endif

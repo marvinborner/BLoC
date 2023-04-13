@@ -157,33 +157,7 @@ static struct tree *build_tree(struct term *term, void **set)
 	free(element); // already exists, not needed
 	(*handle)->list = list_add((*handle)->list, tree);
 
-	fprintf(stderr, "found suitable duplicate! %x %d\n", tree->hash,
-		tree->size);
 	return tree;
-}
-
-static struct term *tree_to_term(struct tree *tree)
-{
-	struct term *term = new_term(tree->type);
-
-	switch (tree->type) {
-	case ABS:
-		term->u.abs.term = tree_to_term(tree->u.abs.term);
-		break;
-	case APP:
-		term->u.app.lhs = tree_to_term(tree->u.app.lhs);
-		term->u.app.rhs = tree_to_term(tree->u.app.rhs);
-		break;
-	case VAR:
-		term->u.var.index = tree->u.var.index;
-		break;
-	case REF:
-		term->u.ref.index = tree->u.ref.index;
-		break;
-	default:
-		fprintf(stderr, "invalid type %d\n", term->type);
-	}
-	return term;
 }
 
 static struct tree *clone_tree_root(struct tree *tree)
@@ -230,15 +204,15 @@ static void invalidate_tree(struct tree *tree)
 	}
 }
 
-static void free_tree(struct tree *tree)
+static void free_tree(struct tree *tree, int ref_only)
 {
 	switch (tree->type) {
 	case ABS:
-		free_tree(tree->u.abs.term);
+		free_tree(tree->u.abs.term, ref_only);
 		break;
 	case APP:
-		free_tree(tree->u.app.lhs);
-		free_tree(tree->u.app.rhs);
+		free_tree(tree->u.app.lhs, ref_only);
+		free_tree(tree->u.app.rhs, ref_only);
 		break;
 	case VAR:
 		break;
@@ -249,7 +223,7 @@ static void free_tree(struct tree *tree)
 		return;
 	}
 
-	if (FREEABLE_TREE(tree))
+	if (!ref_only || (ref_only && FREEABLE_TREE(tree)))
 		free(tree);
 }
 
@@ -257,11 +231,11 @@ static void ref_invalidated_tree(struct tree *tree)
 {
 	switch (tree->type) {
 	case ABS:
-		free_tree(tree->u.abs.term);
+		free_tree(tree->u.abs.term, 1);
 		break;
 	case APP:
-		free_tree(tree->u.app.lhs);
-		free_tree(tree->u.app.rhs);
+		free_tree(tree->u.app.lhs, 1);
+		free_tree(tree->u.app.rhs, 1);
 		break;
 	case VAR:
 		break;
@@ -273,6 +247,24 @@ static void ref_invalidated_tree(struct tree *tree)
 		tree->type = REF;
 		tree->u.ref.index = tree->state - 1;
 		tree->state = VALIDATED_TREE;
+	}
+}
+
+static void free_prioritized_list(struct list *list)
+{
+	struct list *iterator = list;
+	while (iterator) {
+		struct list *temp = iterator->next;
+
+		struct list *subiter = iterator->data;
+		while (subiter) {
+			struct list *subtemp = subiter->next;
+			free(subiter);
+			subiter = subtemp;
+		}
+
+		free(iterator);
+		iterator = temp;
 	}
 }
 
@@ -305,11 +297,7 @@ struct list *tree_merge_duplicates(struct term *term)
 		struct list *list = iterator->data;
 		struct tree *head = list->data;
 
-		print_bruijn(tree_to_term(head));
-		printf("\n%x: %d\n\n", head->hash, list->val);
-
-		if (head->state != VALIDATED_TREE) {
-			printf("skipping invalidated: %x\n", head->hash);
+		if (head->state != VALIDATED_TREE) { // skip invalidated
 			iterator = iterator->next;
 			continue;
 		}
@@ -334,30 +322,28 @@ struct list *tree_merge_duplicates(struct term *term)
 		iterator = iterator->next;
 	}
 
-	printf("\n---\n");
-
+	// destroy invalidated list and replace reffed subtrees
 	iterator = invalidated;
 	while (iterator) {
-		struct tree *huh = iterator->data;
-		printf("%x %d\n", huh->hash, huh->state);
-		print_bruijn(tree_to_term(huh));
-		printf("\n");
 		ref_invalidated_tree(iterator->data);
 		struct list *temp = iterator->next;
 		free(iterator);
 		iterator = temp;
 	}
 
-	printf("\n---\n");
-
-	iterator = final;
-	while (iterator) {
-		struct tree *huh = iterator->data;
-		struct term *foo = tree_to_term(huh);
-		print_bruijn(foo);
-		printf("\n%x\n\n", huh->hash);
-		iterator = iterator->next;
-	}
+	// destroy prioritized list
+	free_prioritized_list(prioritized);
 
 	return final;
+}
+
+void tree_destroy(struct list *table)
+{
+	struct list *iterator = table;
+	while (iterator) {
+		free_tree(iterator->data, 0);
+		struct list *temp = iterator->next;
+		free(iterator);
+		iterator = temp;
+	}
 }

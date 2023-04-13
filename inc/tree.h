@@ -42,5 +42,6 @@ struct list {
 };
 
 struct list *tree_merge_duplicates(struct term *term);
+void tree_destroy(struct list *table);
 
 #endif

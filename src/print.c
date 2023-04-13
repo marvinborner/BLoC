@@ -49,6 +49,18 @@ void print_blc(struct term *term)
 		printf("0");
 		break;
 	default:
-		fprintf(stderr, "Invalid type %d\n", term->type);
+		fprintf(stderr, "invalid type %d\n", term->type);
 	}
+}
+
+void print_bloc(struct bloc_parsed *bloc)
+{
+	printf("\n=== START BLOC ===\n");
+	printf("| number of entries: %ld\n", bloc->length);
+	for (size_t i = 0; i < bloc->length; i++) {
+		printf("| entry %ld: ", i);
+		print_bruijn(bloc->entries[i]);
+		printf("\n");
+	}
+	printf("=== END BLOC ===\n\n");
 }

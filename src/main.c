@@ -13,6 +13,9 @@
 #include <build.h>
 #include <free.h>
 
+// automatically generated using gengetopt
+#include "cmdline.h"
+
 #define BUF_SIZE 1024
 static char *read_stdin(void)
 {
@@ -70,33 +73,39 @@ static char *read_file(const char *path)
 
 int main(int argc, char **argv)
 {
-	if (argc < 2) {
-		fprintf(stderr, "Invalid arguments\n");
-		return 1;
-	}
+	struct gengetopt_args_info args;
+	if (cmdline_parser(argc, argv, &args))
+		exit(1);
 
 	char *input;
-	if (argv[1][0] == '-') {
+	if (args.input_arg[0] == '-') {
 		input = read_stdin();
 	} else {
-		input = read_file(argv[1]);
+		input = read_file(args.input_arg);
 	}
 
 	if (!input)
 		return 1;
 
-	struct term *parsed = parse_blc(input);
-	print_bruijn(parsed);
+	if (args.from_blc_flag && !args.from_bloc_flag) {
+		struct term *parsed = parse_blc(input);
+		struct list *table = tree_merge_duplicates(parsed);
+		write_bloc(table, args.output_arg);
+		tree_destroy(table);
+		free_term(parsed);
+		free(input);
+		return 0;
+	}
 
-	tree_merge_duplicates(parsed);
-
-	/* write_bloc(0, "test.bloc"); */
-	/* const char *input = read_file("test.bloc"); */
-	/* struct bloc_parsed *bloc = parse_bloc(input); */
-	/* struct term *term = from_bloc(bloc); */
-	/* print_blc(term); */
-
-	/* free_term(term); // TODO: Fix sharing user-after-free */
+	if (args.from_bloc_flag) {
+		struct bloc_parsed *bloc = parse_bloc(input);
+		if (args.dump_flag)
+			print_bloc(bloc);
+		printf("%d\n", bloc->length);
+		// TODO: Write file as BLC
+		free(input);
+		free_bloc(bloc);
+	}
 
 	return 0;
 }

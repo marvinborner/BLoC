@@ -12,7 +12,6 @@
 struct bloc_parsed {
 	size_t length;
 	struct term **entries;
-	struct term *term;
 };
 
 struct term *parse_blc(const char *term);
