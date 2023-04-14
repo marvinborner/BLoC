@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+FAIL="\033[0;31m[FAIL]\033[0m "
+SUCC="\033[0;32m[SUCC]\033[0m "
+
+for file in *.blc; do
+	../build/bloc --from-blc -i "$file" -o ../build/"$file".bloc
+	../build/bloc --from-bloc -d -i ../build/"$file".bloc -o ../build/"$file" >../build/"$file".dump
+	cmp "$file" ../build/"$file" && printf "$SUCC" || printf "$FAIL"
+	echo "blc cmp on $file"
+	cmp "$file".dump ../build/"$file".dump && printf "$SUCC" || printf "$FAIL"
+	echo "bloc dump cmp on $file"
+done
