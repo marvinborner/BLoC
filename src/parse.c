@@ -127,7 +127,9 @@ static struct term *rec_bloc(struct term *term, struct bloc_parsed *bloc)
 			fprintf(stderr, "invalid entry reference\n");
 			return 0;
 		}
-		memcpy(term, bloc->entries[term->u.ref.index], sizeof(*term));
+		memcpy(term,
+		       bloc->entries[bloc->length - term->u.ref.index - 1],
+		       sizeof(*term));
 		break;
 	default:
 		fprintf(stderr, "invalid type %d\n", term->type);

@@ -97,15 +97,16 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if (args.from_bloc_flag) {
+	if (args.from_bloc_flag && !args.from_blc_flag) {
 		struct bloc_parsed *bloc = parse_bloc(input);
 		if (args.dump_flag)
 			print_bloc(bloc);
-		printf("%d\n", bloc->length);
-		// TODO: Write file as BLC
+		write_blc(bloc, args.output_arg);
 		free(input);
 		free_bloc(bloc);
+		return 0;
 	}
 
-	return 0;
+	fprintf(stderr, "invalid options: use --help for information\n");
+	return 1;
 }

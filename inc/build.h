@@ -6,7 +6,9 @@
 
 #include <spec.h>
 #include <tree.h>
+#include <parse.h>
 
 void write_bloc(struct list *table, const char *path);
+void write_blc(struct bloc_parsed *bloc, const char *path);
 
 #endif

@@ -56,11 +56,14 @@ void print_blc(struct term *term)
 void print_bloc(struct bloc_parsed *bloc)
 {
 	printf("\n=== START BLOC ===\n");
-	printf("| number of entries: %ld\n", bloc->length);
-	for (size_t i = 0; i < bloc->length; i++) {
-		printf("| entry %ld: ", i);
+	printf("| entries:\t%ld\n", bloc->length);
+	for (size_t i = 0; i < bloc->length - 1; i++) {
+		printf("| entry %ld:\t", bloc->length - i - 2);
 		print_bruijn(bloc->entries[i]);
 		printf("\n");
 	}
+	printf("| final:\t");
+	print_bruijn(bloc->entries[bloc->length - 1]);
+	printf("\n");
 	printf("=== END BLOC ===\n\n");
 }

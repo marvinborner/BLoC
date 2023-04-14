@@ -18,6 +18,7 @@ struct tree {
 	uint32_t hash;
 	int state; // zero or index to ref
 	int size; // blc length
+	int duplication_count; // needed count to be considered for deduplication
 	union {
 		struct {
 			struct tree *term;

@@ -6,8 +6,6 @@
 #include <stdio.h>
 
 #include <build.h>
-#include <free.h>
-#include <parse.h>
 
 static void write_bit(char val, FILE *file, char *byte, int *bit)
 {
@@ -81,6 +79,47 @@ void write_bloc(struct list *table, const char *path)
 		write_bblc(iterator->data, file);
 		iterator = iterator->next;
 	}
+
+	fclose(file);
+}
+
+static void fprint_bloc_blc(struct term *term, struct bloc_parsed *bloc,
+			    FILE *file)
+{
+	switch (term->type) {
+	case ABS:
+		fprintf(file, "00");
+		fprint_bloc_blc(term->u.abs.term, bloc, file);
+		break;
+	case APP:
+		fprintf(file, "01");
+		fprint_bloc_blc(term->u.app.lhs, bloc, file);
+		fprint_bloc_blc(term->u.app.rhs, bloc, file);
+		break;
+	case VAR:
+		for (int i = 0; i <= term->u.var.index; i++)
+			fprintf(file, "1");
+		fprintf(file, "0");
+		break;
+	case REF:
+		if (term->u.ref.index + 1 >= bloc->length)
+			fprintf(stderr, "invalid ref index %ld\n",
+				term->u.ref.index);
+		fprint_bloc_blc(
+			bloc->entries[bloc->length - term->u.ref.index - 2],
+			bloc, file);
+		break;
+	default:
+		fprintf(stderr, "invalid type %d\n", term->type);
+	}
+}
+
+void write_blc(struct bloc_parsed *bloc, const char *path)
+{
+	FILE *file = fopen(path, "wb");
+
+	fprint_bloc_blc(bloc->entries[bloc->length - 1], bloc, file);
+	fprintf(file, "\n");
 
 	fclose(file);
 }
