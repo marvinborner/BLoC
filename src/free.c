@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include <free.h>
+#include <log.h>
 
 void free_term(struct term *term)
 {
@@ -25,7 +26,7 @@ void free_term(struct term *term)
 		free(term);
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", term->type);
+		fatal("invalid type %d\n", term->type);
 	}
 }
 

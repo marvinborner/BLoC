@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include <print.h>
+#include <log.h>
 
 void print_bruijn(struct term *term)
 {
@@ -27,7 +28,7 @@ void print_bruijn(struct term *term)
 		printf("<%ld>", term->u.ref.index);
 		break;
 	default:
-		fprintf(stderr, "Invalid type %d\n", term->type);
+		fatal("invalid type %d\n", term->type);
 	}
 }
 
@@ -49,7 +50,7 @@ void print_blc(struct term *term)
 		printf("0");
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", term->type);
+		fatal("invalid type %d\n", term->type);
 	}
 }
 

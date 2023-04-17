@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <build.h>
+#include <log.h>
 
 static void write_bit(char val, FILE *file, char *byte, int *bit)
 {
@@ -51,7 +52,7 @@ static void rec_write_bblc(struct tree *tree, FILE *file, char *byte, int *bit)
 			write_bit((ref >> i) & 1, file, byte, bit);
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", tree->type);
+		fatal("invalid type %d\n", tree->type);
 	}
 }
 
@@ -69,6 +70,7 @@ static void write_bblc(struct tree *tree, FILE *file)
 void write_bloc(struct list *table, const char *path)
 {
 	short length = table->val;
+	debug("writing bloc with %ld elements to %s\n", length, path);
 
 	FILE *file = fopen(path, "wb");
 	fwrite(BLOC_IDENTIFIER, BLOC_IDENTIFIER_LENGTH, 1, file);
@@ -103,14 +105,13 @@ static void fprint_bloc_blc(struct term *term, struct bloc_parsed *bloc,
 		break;
 	case REF:
 		if (term->u.ref.index + 1 >= bloc->length)
-			fprintf(stderr, "invalid ref index %ld\n",
-				term->u.ref.index);
+			fatal("invalid ref index %ld\n", term->u.ref.index);
 		fprint_bloc_blc(
 			bloc->entries[bloc->length - term->u.ref.index - 2],
 			bloc, file);
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", term->type);
+		fatal("invalid type %d\n", term->type);
 	}
 }
 

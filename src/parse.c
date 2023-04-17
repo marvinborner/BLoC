@@ -8,12 +8,13 @@
 #include <term.h>
 #include <spec.h>
 #include <parse.h>
+#include <log.h>
 
 static struct term *rec_blc(const char **term)
 {
 	struct term *res = 0;
 	if (!**term) {
-		fprintf(stderr, "invalid parsing state!\n");
+		fatal("invalid parsing state!\n");
 	} else if (**term == '0' && *(*term + 1) == '0') {
 		(*term) += 2;
 		res = new_term(ABS);
@@ -89,7 +90,7 @@ struct bloc_parsed *parse_bloc(const void *bloc)
 	const struct bloc_header *header = bloc;
 	if (memcmp(header->identifier, BLOC_IDENTIFIER,
 		   (size_t)BLOC_IDENTIFIER_LENGTH)) {
-		fprintf(stderr, "invalid BLoC identifier!\n");
+		fatal("invalid BLoC identifier!\n");
 		return 0;
 	}
 
@@ -124,7 +125,7 @@ static struct term *rec_bloc(struct term *term, struct bloc_parsed *bloc)
 		break;
 	case REF:
 		if (term->u.ref.index >= bloc->length) {
-			fprintf(stderr, "invalid entry reference\n");
+			fatal("invalid entry reference\n");
 			return 0;
 		}
 		memcpy(term,
@@ -132,7 +133,7 @@ static struct term *rec_bloc(struct term *term, struct bloc_parsed *bloc)
 		       sizeof(*term));
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", term->type);
+		fatal("invalid type %d\n", term->type);
 		return 0;
 	}
 	return term;

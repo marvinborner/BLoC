@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <log.h>
 #include <pqueue.h>
 #include <tree.h>
 
@@ -112,8 +113,7 @@ static struct tree *build_tree(struct term *term, void **set)
 		tree->size = term->u.var.index;
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", term->type);
-		return 0;
+		fatal("invalid type %d\n", term->type);
 	}
 
 	if (tree->size < 10) // not suitable for deduplication
@@ -153,8 +153,8 @@ static struct tree *clone_tree_root(struct tree *tree)
 		new->u.var.index = tree->u.var.index;
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", tree->type);
 		free(new);
+		fatal("invalid type %d\n", tree->type);
 		return 0;
 	}
 
@@ -176,7 +176,7 @@ static void invalidate_tree(struct tree *tree, int duplication_count)
 	case VAR:
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", tree->type);
+		fatal("invalid type %d\n", tree->type);
 	}
 }
 
@@ -195,7 +195,7 @@ static void free_tree(struct tree *tree, int ref_only)
 	case REF:
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", tree->type);
+		fatal("invalid type %d\n", tree->type);
 		return;
 	}
 
@@ -216,7 +216,7 @@ static void ref_invalidated_tree(struct tree *tree)
 	case VAR:
 		break;
 	default:
-		fprintf(stderr, "invalid type %d\n", tree->type);
+		fatal("invalid type %d\n", tree->type);
 	}
 	if (tree->state != INVALIDATED_TREE &&
 	    tree->state != VALIDATED_TREE) { // is reffed
@@ -238,12 +238,15 @@ static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 
 struct list *tree_merge_duplicates(struct term *term)
 {
+	debug("building the merkle tree and deduplication set\n");
+
 	void *set = 0;
 	build_tree(term, &set);
 	if (!set)
 		return 0;
 
-	// construct priority list while deleting set
+	// construct priority queue while deleting set
+	debug("constructing priority queue\n");
 	struct pqueue *prioritized = pqueue_init(2 << 15, cmp_pri, get_pri);
 	while (set) {
 		struct set_element *element = *(struct set_element **)set;
@@ -259,6 +262,7 @@ struct list *tree_merge_duplicates(struct term *term)
 	struct list *longest = pqueue_pop(prioritized);
 	final = list_add(final, longest->data);
 
+	debug("iterating priority queue, invalidating duplicates\n");
 	struct list *iterator;
 	while ((iterator = pqueue_pop(prioritized))) {
 		struct tree *head = iterator->data;
@@ -292,6 +296,7 @@ struct list *tree_merge_duplicates(struct term *term)
 	}
 
 	// destroy invalidated list and replace reffed subtrees
+	debug("replacing invalidated trees with references\n");
 	iterator = invalidated;
 	while (iterator) {
 		ref_invalidated_tree(iterator->data);
@@ -308,6 +313,8 @@ struct list *tree_merge_duplicates(struct term *term)
 
 void tree_destroy(struct list *table)
 {
+	return;
+	debug("freeing %d tree elements\n", table->val);
 	struct list *iterator = table;
 	while (iterator) {
 		free_tree(iterator->data, 0);

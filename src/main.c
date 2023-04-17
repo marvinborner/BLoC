@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include <term.h>
+#include <log.h>
 #include <print.h>
 #include <tree.h>
 #include <parse.h>
@@ -19,6 +20,7 @@
 #define BUF_SIZE 1024
 static char *read_stdin(void)
 {
+	debug("reading from stdin\n");
 	char buffer[BUF_SIZE];
 	size_t size = 1;
 	char *string = malloc(sizeof(char) * BUF_SIZE);
@@ -38,20 +40,17 @@ static char *read_stdin(void)
 
 	if (ferror(stdin)) {
 		free(string);
-		fprintf(stderr, "Couldn't read from stdin\n");
-		return 0;
+		fatal("can't read from stdin\n");
 	}
 	return string;
 }
 
 static char *read_file(const char *path)
 {
+	debug("reading from %s\n", path);
 	FILE *f = fopen(path, "rb");
-	if (!f) {
-		fprintf(stderr, "Can't open file %s: %s\n", path,
-			strerror(errno));
-		return 0;
-	}
+	if (!f)
+		fatal("can't open file %s: %s\n", path, strerror(errno));
 
 	fseek(f, 0, SEEK_END);
 	long fsize = ftell(f);
@@ -62,9 +61,8 @@ static char *read_file(const char *path)
 	fclose(f);
 
 	if (ret != 1) {
-		fprintf(stderr, "Can't read file %s: %s\n", path,
-			strerror(errno));
-		return 0;
+		free(string);
+		fatal("can't read file %s: %s\n", path, strerror(errno));
 	}
 
 	string[fsize] = 0;
@@ -77,6 +75,8 @@ int main(int argc, char **argv)
 	if (cmdline_parser(argc, argv, &args))
 		exit(1);
 
+	debug_enable(args.verbose_flag);
+
 	char *input;
 	if (args.input_arg[0] == '-') {
 		input = read_stdin();
@@ -88,16 +88,27 @@ int main(int argc, char **argv)
 		return 1;
 
 	if (args.from_blc_flag && !args.from_bloc_flag) {
+		debug("parsing as blc\n");
+
 		struct term *parsed = parse_blc(input);
+		debug("parsed blc\n");
+
+		debug("merging duplicates\n");
 		struct list *table = tree_merge_duplicates(parsed);
+
 		write_bloc(table, args.output_arg);
+
 		tree_destroy(table);
 		free_term(parsed);
 		free(input);
+
+		debug("done!\n");
 		return 0;
 	}
 
 	if (args.from_bloc_flag && !args.from_blc_flag) {
+		debug("parsing as bloc\n");
+
 		struct bloc_parsed *bloc = parse_bloc(input);
 		if (args.dump_flag)
 			print_bloc(bloc);
@@ -107,6 +118,6 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	fprintf(stderr, "invalid options: use --help for information\n");
+	fatal("invalid options: use --help for information\n");
 	return 1;
 }
