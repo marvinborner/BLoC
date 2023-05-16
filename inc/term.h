@@ -28,5 +28,6 @@ struct term {
 };
 
 struct term *new_term(term_type type);
+void free_term(struct term *term);
 
 #endif

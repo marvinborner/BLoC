@@ -22,7 +22,9 @@ ifeq ($(PREFIX),)
     PREFIX := /usr/local
 endif
 
-all: genopts compile sync
+all: genopts compile
+
+full: all sync
 
 genopts:
 	@gengetopt -i ${CURDIR}/options.ggo -G --output-dir=$(SRC)

@@ -14,6 +14,8 @@ void debug(const char *format, ...)
 	if (!debug_enabled)
 		return;
 
+	fprintf(stderr, "[DEBUG] ");
+
 	va_list ap;
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);
@@ -27,6 +29,8 @@ void debug_enable(int enable)
 
 void fatal(const char *format, ...)
 {
+	fprintf(stderr, "[FATAL] ");
+
 	va_list ap;
 	va_start(ap, format);
 	vfprintf(stderr, format, ap);

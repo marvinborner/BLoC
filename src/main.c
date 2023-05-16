@@ -12,7 +12,6 @@
 #include <tree.h>
 #include <parse.h>
 #include <build.h>
-#include <free.h>
 
 // automatically generated using gengetopt
 #include "cmdline.h"
@@ -25,7 +24,7 @@ static char *read_stdin(void)
 	size_t size = 1;
 	char *string = malloc(sizeof(char) * BUF_SIZE);
 	if (!string)
-		return 0;
+		fatal("out of memory!\n");
 	string[0] = '\0';
 	while (fgets(buffer, BUF_SIZE, stdin)) {
 		char *old = string;
@@ -57,6 +56,8 @@ static char *read_file(const char *path)
 	fseek(f, 0, SEEK_SET);
 
 	char *string = malloc(fsize + 1);
+	if (!string)
+		fatal("out of memory!\n");
 	int ret = fread(string, fsize, 1, f);
 	fclose(f);
 

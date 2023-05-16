@@ -111,6 +111,16 @@ struct bloc_parsed *parse_bloc(const void *bloc)
 	return parsed;
 }
 
+void free_bloc(struct bloc_parsed *bloc)
+{
+	for (size_t i = 0; i < bloc->length; i++) {
+		free_term(bloc->entries[i]);
+	}
+
+	free(bloc->entries);
+	free(bloc);
+}
+
 static struct term *rec_bloc(struct term *term, struct bloc_parsed *bloc)
 {
 	switch (term->type) {
@@ -124,10 +134,8 @@ static struct term *rec_bloc(struct term *term, struct bloc_parsed *bloc)
 	case VAR:
 		break;
 	case REF:
-		if (term->u.ref.index >= bloc->length) {
+		if (term->u.ref.index >= bloc->length)
 			fatal("invalid entry reference\n");
-			return 0;
-		}
 		memcpy(term,
 		       bloc->entries[bloc->length - term->u.ref.index - 1],
 		       sizeof(*term));

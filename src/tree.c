@@ -53,6 +53,8 @@ static struct list *list_end = 0;
 static struct list *list_add(struct list *list, void *data)
 {
 	struct list *new = malloc(sizeof(*new));
+	if (!new)
+		fatal("out of memory!\n");
 	new->next = list;
 	new->data = data;
 	new->val = list ? list->val + 1 : 1; // amount of trees in list
@@ -79,10 +81,13 @@ static int hash_compare(const void *_a, const void *_b)
 }
 
 // applies the hash function to the tree's elements (similar to merkle trees)
+// also creates a set of lists with deduplication candidates
 // TODO: as above: rethink hash choice
 static struct tree *build_tree(struct term *term, void **set)
 {
 	struct tree *tree = malloc(sizeof(*tree));
+	if (!tree)
+		fatal("out of memory!\n");
 	tree->type = term->type;
 	tree->state = VALIDATED_TREE;
 	tree->duplication_count = 1;
@@ -120,6 +125,8 @@ static struct tree *build_tree(struct term *term, void **set)
 		return tree;
 
 	struct set_element *element = malloc(sizeof(*element));
+	if (!element)
+		fatal("out of memory!\n");
 	element->hash = tree->hash;
 
 	struct set_element **handle = tsearch(element, set, hash_compare);
@@ -137,6 +144,8 @@ static struct tree *build_tree(struct term *term, void **set)
 static struct tree *clone_tree_root(struct tree *tree)
 {
 	struct tree *new = malloc(sizeof(*new));
+	if (!new)
+		fatal("out of memory!\n");
 	new->type = tree->type;
 	new->hash = tree->hash;
 	new->duplication_count = tree->duplication_count;
@@ -226,6 +235,8 @@ static void ref_invalidated_tree(struct tree *tree)
 	}
 }
 
+// priority of candidate -> length of expression
+// TODO: What about occurrence count (list length)?
 static pqueue_pri_t get_pri(void *a)
 {
 	return ((struct tree *)((struct list *)a)->data)->size;
@@ -240,14 +251,18 @@ struct list *tree_merge_duplicates(struct term *term)
 {
 	debug("building the merkle tree and deduplication set\n");
 
+	// get the deduplication candidates
 	void *set = 0;
 	build_tree(term, &set);
 	if (!set)
-		return 0;
+		fatal("term too short\n");
 
 	// construct priority queue while deleting set
+	// ~> sorts the candidates by get_pri
 	debug("constructing priority queue\n");
 	struct pqueue *prioritized = pqueue_init(2 << 15, cmp_pri, get_pri);
+	if (!prioritized)
+		fatal("can't create pqueue\n");
 	while (set) {
 		struct set_element *element = *(struct set_element **)set;
 		pqueue_insert(prioritized, element->list);
@@ -265,33 +280,33 @@ struct list *tree_merge_duplicates(struct term *term)
 	debug("iterating priority queue, invalidating duplicates\n");
 	struct list *iterator;
 	while ((iterator = pqueue_pop(prioritized))) {
+		// only consider merging if they occur >1 times
+		if (iterator->val <= 1)
+			continue;
+
 		struct tree *head = iterator->data;
 
+		// skip if invalidated and not duplicated enough
 		if (head->state != VALIDATED_TREE &&
-		    head->duplication_count >=
-			    iterator->val) { // skip invalidated
+		    head->duplication_count >= iterator->val)
 			continue;
-		}
 
-		if (iterator->val > 1) { // needs merging
-			// clone root so it doesn't get replaced by a ref to itself
-			struct tree *cloned_head = clone_tree_root(head);
-			cloned_head->state = INVALIDATED_TREE;
-			final = list_add(final, cloned_head);
+		// clone root so it doesn't get replaced by a ref to itself
+		struct tree *cloned_head = clone_tree_root(head);
+		cloned_head->state = INVALIDATED_TREE;
+		final = list_add(final, cloned_head);
 
-			// invalidate all subtrees
-			// invalidated trees will be replaced with a reference
-			struct list *list = iterator;
-			while (list) {
-				invalidate_tree(list->data, list->val);
+		// invalidate all subtrees
+		// invalidated trees will be replaced with a reference
+		struct list *list = iterator;
+		while (list) {
+			invalidate_tree(list->data, list->val);
 
-				// keep a ref for later replacement
-				((struct tree *)list->data)->state =
-					final->val - 1;
+			// keep a ref for later replacement
+			((struct tree *)list->data)->state = final->val - 1;
 
-				invalidated = list_add(invalidated, list->data);
-				list = list->next;
-			}
+			invalidated = list_add(invalidated, list->data);
+			list = list->next;
 		}
 	}
 
