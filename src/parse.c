@@ -120,35 +120,3 @@ void free_bloc(struct bloc_parsed *bloc)
 	free(bloc->entries);
 	free(bloc);
 }
-
-static struct term *rec_bloc(struct term *term, struct bloc_parsed *bloc)
-{
-	switch (term->type) {
-	case ABS:
-		rec_bloc(term->u.abs.term, bloc);
-		break;
-	case APP:
-		rec_bloc(term->u.app.lhs, bloc);
-		rec_bloc(term->u.app.rhs, bloc);
-		break;
-	case VAR:
-		break;
-	case REF:
-		if (term->u.ref.index >= bloc->length)
-			fatal("invalid entry reference\n");
-		memcpy(term,
-		       bloc->entries[bloc->length - term->u.ref.index - 1],
-		       sizeof(*term));
-		break;
-	default:
-		fatal("invalid type %d\n", term->type);
-		return 0;
-	}
-	return term;
-}
-
-struct term *from_bloc(struct bloc_parsed *bloc)
-{
-	struct term *last = bloc->entries[bloc->length - 1];
-	return rec_bloc(last, bloc);
-}

@@ -67,12 +67,9 @@ static void write_bblc(struct tree *tree, FILE *file)
 		fwrite(&byte, 1, 1, file);
 }
 
-void write_bloc(struct list *table, const char *path)
+static void write_bloc_file(struct list *table, FILE *file)
 {
 	short length = table->val;
-	debug("writing bloc with %ld elements to %s\n", length, path);
-
-	FILE *file = fopen(path, "wb");
 	fwrite(BLOC_IDENTIFIER, BLOC_IDENTIFIER_LENGTH, 1, file);
 	fwrite(&length, 2, 1, file);
 
@@ -81,8 +78,14 @@ void write_bloc(struct list *table, const char *path)
 		write_bblc(iterator->data, file);
 		iterator = iterator->next;
 	}
+}
 
-	fclose(file);
+void write_bloc(struct list *table, FILE *file)
+{
+	short length = table->val;
+	debug("writing bloc with %ld elements\n", length);
+
+	write_bloc_file(table, file);
 }
 
 static void fprint_bloc_blc(struct term *term, struct bloc_parsed *bloc,
@@ -115,12 +118,8 @@ static void fprint_bloc_blc(struct term *term, struct bloc_parsed *bloc,
 	}
 }
 
-void write_blc(struct bloc_parsed *bloc, const char *path)
+void write_blc(struct bloc_parsed *bloc, FILE *file)
 {
-	FILE *file = fopen(path, "wb");
-
 	fprint_bloc_blc(bloc->entries[bloc->length - 1], bloc, file);
 	fprintf(file, "\n");
-
-	fclose(file);
 }

@@ -29,5 +29,6 @@ struct term {
 
 struct term *new_term(term_type type);
 void free_term(struct term *term);
+void diff_term(struct term *a, struct term *b);
 
 #endif

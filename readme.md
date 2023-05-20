@@ -71,7 +71,7 @@ A possible encoding in BLoC:
 | 0x04 | 0x06 | number of entries: 3                                                                                            |
 | 0x06 | 0x17 | encoded `M`: gets a bit longer due to different encoding                                                        |
 | 0x17 | 0x28 | encoded `N`: gets a bit longer due to different encoding                                                        |
-| 0x28 | 0x34 | `00010010010011<M>00011<N>011<M>011<N>`, where `<M>=00{1}` and `<N>=00{1}` are indices with length of 1.25 byte |
+| 0x28 | 0x34 | `00010010010011<M>00011<N>011<M>011<N>`, where `<M>=00{1}` and `<N>=00{0}` are indices with length of 1.25 byte |
 
 Even in this small example BLoC uses less space than BLC (0x34 vs. 0x42
 bytes). Depending on the content of `M` and `N`, this could have
@@ -95,12 +95,18 @@ shortest one (as fully reduced expressions aren’t necessarily shorter).
 
 ## Improvements
 
-The current optimizer does not always make the best deduplication
+There seem to be problems with *very* big files:
+[8cc](https://github.com/woodrush/lambda-8cc) does not pass the bloc-blc
+comparison test. I’ve not been able to reproduce this bug with any other
+file and 8cc itself is too huge to comfortably debug the issue. If
+you’re reading this: Please help me :(
+
+Also the current optimizer does not always make the best deduplication
 choices. It seems like finding the optimal deduplications requires quite
 complex algorithms which would probably be rather inefficient.
 
 For example, as of right now the length of an expression as seen by the
-deduplicator doesn’t consider the change of length when sub-expressions
-get replaced by a reference (of unknown bit length!) to another
-expression. This results in entries like `(0 <1234>)` that would not
-have needed to be deduplicated.
+deduplicator doesn’t consider the change of occurrence count when
+sub-expressions get replaced by a reference to another expression. This
+results in entries like `(0 <1234>)` that would not have needed to be
+deduplicated.

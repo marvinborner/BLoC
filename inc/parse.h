@@ -17,6 +17,5 @@ struct bloc_parsed {
 struct term *parse_blc(const char *term);
 struct bloc_parsed *parse_bloc(const void *bloc);
 void free_bloc(struct bloc_parsed *bloc);
-struct term *from_bloc(struct bloc_parsed *bloc);
 
 #endif
