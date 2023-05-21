@@ -46,7 +46,7 @@ static void rec_write_bblc(struct tree *tree, FILE *file, char *byte, int *bit)
 		write_bit(1, file, byte, bit);
 		write_bit(1, file, byte, bit);
 
-		int ref = tree->u.ref.table_index;
+		size_t ref = tree->u.ref.table_index;
 		int bits = 0;
 
 		// write index length bit prefixes
@@ -58,11 +58,11 @@ static void rec_write_bblc(struct tree *tree, FILE *file, char *byte, int *bit)
 			bits = 16;
 			write_bit(0, file, byte, bit);
 			write_bit(1, file, byte, bit);
-		} else if (ref < 2 << 31) {
+		} else if (ref < 2l << 31) {
 			bits = 32;
 			write_bit(1, file, byte, bit);
 			write_bit(0, file, byte, bit);
-		} else if (ref < 2 << 63) {
+		} else {
 			bits = 64; // i wanna see that program lol
 			write_bit(1, file, byte, bit);
 			write_bit(1, file, byte, bit);

@@ -13,41 +13,7 @@
 #include <log.h>
 #include <pqueue.h>
 #include <tree.h>
-
-static inline uint32_t murmur_32_scramble(uint32_t k)
-{
-	k *= 0xcc9e2d51;
-	k = (k << 15) | (k >> 17);
-	k *= 0x1b873593;
-	return k;
-}
-
-// TODO: I'm really unsure whether murmur3 is appropriate for this.
-static uint32_t murmur3_32(const uint8_t *key, size_t len, uint32_t seed)
-{
-	uint32_t h = seed;
-	uint32_t k;
-	for (size_t i = len >> 2; i; i--) {
-		memcpy(&k, key, sizeof(uint32_t));
-		key += sizeof(uint32_t);
-		h ^= murmur_32_scramble(k);
-		h = (h << 13) | (h >> 19);
-		h = h * 5 + 0xe6546b64;
-	}
-	k = 0;
-	for (size_t i = len & 3; i; i--) {
-		k <<= 8;
-		k |= key[i - 1];
-	}
-	h ^= murmur_32_scramble(k);
-	h ^= len;
-	h ^= h >> 16;
-	h *= 0x85ebca6b;
-	h ^= h >> 13;
-	h *= 0xc2b2ae35;
-	h ^= h >> 16;
-	return h;
-}
+#include <hash.h>
 
 static struct list *list_end = 0;
 struct list *list_add(struct list *list, void *data)
@@ -63,13 +29,13 @@ struct list *list_add(struct list *list, void *data)
 
 // element of the tsearch tree
 struct hash_to_list {
-	uint32_t hash;
+	hash_t hash;
 	struct list *list;
 };
 
 // element of the tsearch tree
 struct hash_to_tree {
-	uint32_t hash;
+	hash_t hash;
 	struct tree *tree;
 };
 
@@ -101,26 +67,23 @@ static struct tree *build_tree(struct term *term, void **set)
 	switch (term->type) {
 	case ABS:
 		tree->u.abs.term = build_tree(term->u.abs.term, set);
-		tree->hash =
-			murmur3_32((const uint8_t *)&tree->type,
-				   sizeof(tree->type), tree->u.abs.term->hash);
+		tree->hash = hash((const uint8_t *)&tree->type,
+				  sizeof(tree->type), tree->u.abs.term->hash);
 		tree->size = tree->u.abs.term->size + 2;
 		break;
 	case APP:
 		tree->u.app.lhs = build_tree(term->u.app.lhs, set);
 		tree->u.app.rhs = build_tree(term->u.app.rhs, set);
-		tree->hash =
-			murmur3_32((const uint8_t *)&tree->type,
-				   sizeof(tree->type), tree->u.app.lhs->hash);
-		tree->hash =
-			murmur3_32((const uint8_t *)&tree->hash,
-				   sizeof(tree->hash), tree->u.app.rhs->hash);
+		tree->hash = hash((const uint8_t *)&tree->type,
+				  sizeof(tree->type), tree->u.app.lhs->hash);
+		tree->hash = hash((const uint8_t *)&tree->hash,
+				  sizeof(tree->hash), tree->u.app.rhs->hash);
 		tree->size = tree->u.app.lhs->size + tree->u.app.rhs->size + 3;
 		break;
 	case VAR:
 		tree->u.var.index = term->u.var.index;
-		tree->hash = murmur3_32((const uint8_t *)&tree->type,
-					sizeof(tree->type), tree->u.var.index);
+		tree->hash = hash((const uint8_t *)&tree->type,
+				  sizeof(tree->type), tree->u.var.index);
 		tree->size = term->u.var.index;
 		break;
 	default:

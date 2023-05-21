@@ -7,17 +7,18 @@
 #include <stdint.h>
 
 #include <term.h>
+#include <hash.h>
 
-#define VALIDATED_TREE ((int)0x0)
-#define INVALIDATED_TREE ((int)0xffffffff)
+#define VALIDATED_TREE ((hash_t)0x0)
+#define INVALIDATED_TREE ((hash_t)0xffffffff)
 #define FREEABLE_TREE(t)                                                       \
 	((t)->state != VALIDATED_TREE && (t)->state != INVALIDATED_TREE)
 
 struct tree {
 	term_type type;
-	uint32_t hash;
-	int state; // zero or index to ref
-	int size; // blc length
+	hash_t hash;
+	hash_t state; // zero or index to ref
+	size_t size; // blc length
 	int duplication_count; // needed count to be considered for deduplication
 	union {
 		struct {
@@ -31,8 +32,8 @@ struct tree {
 			int index;
 		} var;
 		struct {
-			size_t hash;
-			int table_index;
+			hash_t hash;
+			size_t table_index;
 		} ref;
 	} u;
 };

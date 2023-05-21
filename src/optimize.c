@@ -8,19 +8,20 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <hash.h>
 #include <log.h>
 #include <optimize.h>
 #include <pqueue.h>
 
 struct tree_tracker {
-	uint32_t hash;
+	hash_t hash;
 	struct tree *tree;
 	int count; // reference/occurrence count
 	size_t position; // in queue
 };
 
 struct hash_to_tree {
-	uint32_t hash;
+	hash_t hash;
 	struct tree *tree;
 };
 
