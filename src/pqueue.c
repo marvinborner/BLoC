@@ -35,7 +35,7 @@
 #define parent(i) ((i) >> 1)
 
 struct pqueue *pqueue_init(size_t n, pqueue_cmp_pri_f cmppri,
-			   pqueue_get_pri_f getpri)
+			   pqueue_get_pri_f getpri, pqueue_set_pos_f setpos)
 {
 	struct pqueue *q;
 
@@ -52,6 +52,7 @@ struct pqueue *pqueue_init(size_t n, pqueue_cmp_pri_f cmppri,
 	q->avail = q->step = (n + 1); /* see comment above about n+1 */
 	q->cmppri = cmppri;
 	q->getpri = getpri;
+	q->setpos = setpos;
 
 	return q;
 }
@@ -78,9 +79,11 @@ static void bubble_up(struct pqueue *q, size_t i)
 	     ((i > 1) && q->cmppri(q->getpri(q->d[parent_node]), moving_pri));
 	     i = parent_node, parent_node = parent(i)) {
 		q->d[i] = q->d[parent_node];
+		q->setpos(q->d[i], i);
 	}
 
 	q->d[i] = moving_node;
+	q->setpos(moving_node, i);
 }
 
 static size_t maxchild(struct pqueue *q, size_t i)
@@ -107,10 +110,12 @@ static void percolate_down(struct pqueue *q, size_t i)
 	while ((child_node = maxchild(q, i)) &&
 	       q->cmppri(moving_pri, q->getpri(q->d[child_node]))) {
 		q->d[i] = q->d[child_node];
+		q->setpos(q->d[i], i);
 		i = child_node;
 	}
 
 	q->d[i] = moving_node;
+	q->setpos(moving_node, i);
 }
 
 int pqueue_insert(struct pqueue *q, void *d)

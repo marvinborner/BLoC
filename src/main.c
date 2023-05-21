@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include <term.h>
+#include <optimize.h>
 #include <log.h>
 #include <print.h>
 #include <tree.h>
@@ -84,7 +85,11 @@ static void test(char *input)
 	debug("parsed original blc\n");
 
 	debug("merging duplicates\n");
-	struct list *table = tree_merge_duplicates(parsed_1);
+	void *all_trees = 0;
+	struct tree *tree = tree_merge_duplicates(parsed_1, &all_trees);
+
+	debug("optimizing tree\n");
+	struct list *table = optimize_tree(tree, &all_trees);
 
 	FILE *temp_bloc = tmpfile();
 	write_bloc(table, temp_bloc);
@@ -123,7 +128,11 @@ static void from_blc(char *input, char *output_path)
 	debug("parsed blc\n");
 
 	debug("merging duplicates\n");
-	struct list *table = tree_merge_duplicates(parsed);
+	void *all_trees = 0;
+	struct tree *tree = tree_merge_duplicates(parsed, &all_trees);
+
+	debug("optimizing tree\n");
+	struct list *table = optimize_tree(tree, &all_trees);
 
 	FILE *file = fopen(output_path, "wb");
 	write_bloc(table, file);

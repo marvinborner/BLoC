@@ -58,6 +58,7 @@ struct pqueue {
 	size_t step; /**< growth stepping setting */
 	pqueue_cmp_pri_f cmppri; /**< callback to compare nodes */
 	pqueue_get_pri_f getpri; /**< callback to get priority of a node */
+	pqueue_set_pos_f setpos; /**< callback to set position of a node */
 	void **d; /**< The actualy queue in binary heap form */
 };
 
@@ -74,7 +75,7 @@ struct pqueue {
  * @return the handle or NULL for insufficent memory
  */
 struct pqueue *pqueue_init(size_t n, pqueue_cmp_pri_f cmppri,
-			   pqueue_get_pri_f getpri);
+			   pqueue_get_pri_f getpri, pqueue_set_pos_f set_pos);
 
 /**
  * free all memory used by the queue

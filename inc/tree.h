@@ -31,7 +31,8 @@ struct tree {
 			int index;
 		} var;
 		struct {
-			size_t index;
+			size_t hash;
+			int table_index;
 		} ref;
 	} u;
 };
@@ -42,7 +43,8 @@ struct list {
 	struct list *next;
 };
 
-struct list *tree_merge_duplicates(struct term *term);
+struct list *list_add(struct list *list, void *data);
+struct tree *tree_merge_duplicates(struct term *term, void **all_trees);
 void tree_destroy(struct list *table);
 
 #endif

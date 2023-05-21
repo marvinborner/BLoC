@@ -50,7 +50,7 @@ static uint32_t murmur3_32(const uint8_t *key, size_t len, uint32_t seed)
 }
 
 static struct list *list_end = 0;
-static struct list *list_add(struct list *list, void *data)
+struct list *list_add(struct list *list, void *data)
 {
 	struct list *new = malloc(sizeof(*new));
 	if (!new)
@@ -62,16 +62,22 @@ static struct list *list_add(struct list *list, void *data)
 }
 
 // element of the tsearch tree
-struct set_element {
+struct hash_to_list {
 	uint32_t hash;
 	struct list *list;
+};
+
+// element of the tsearch tree
+struct hash_to_tree {
+	uint32_t hash;
+	struct tree *tree;
 };
 
 // comparison_fn_t for tsearch
 static int hash_compare(const void *_a, const void *_b)
 {
-	const struct set_element *a = _a;
-	const struct set_element *b = _b;
+	const struct hash_to_list *a = _a;
+	const struct hash_to_list *b = _b;
 
 	if (a->hash < b->hash)
 		return -1;
@@ -124,12 +130,12 @@ static struct tree *build_tree(struct term *term, void **set)
 	if (tree->size < 10) // not suitable for deduplication
 		return tree;
 
-	struct set_element *element = malloc(sizeof(*element));
+	struct hash_to_list *element = malloc(sizeof(*element));
 	if (!element)
 		fatal("out of memory!\n");
 	element->hash = tree->hash;
 
-	struct set_element **handle = tsearch(element, set, hash_compare);
+	struct hash_to_list **handle = tsearch(element, set, hash_compare);
 	if (*handle == element) { // first of its kind
 		element->list = list_add(list_end, tree);
 		return tree;
@@ -164,7 +170,6 @@ static struct tree *clone_tree_root(struct tree *tree)
 	default:
 		free(new);
 		fatal("invalid type %d\n", tree->type);
-		return 0;
 	}
 
 	return new;
@@ -230,7 +235,7 @@ static void ref_invalidated_tree(struct tree *tree)
 	if (tree->state != INVALIDATED_TREE &&
 	    tree->state != VALIDATED_TREE) { // is reffed
 		tree->type = REF;
-		tree->u.ref.index = tree->state - 1;
+		tree->u.ref.hash = tree->state;
 		tree->state = VALIDATED_TREE;
 	}
 }
@@ -247,7 +252,13 @@ static int cmp_pri(pqueue_pri_t next, pqueue_pri_t curr)
 	return next < curr;
 }
 
-struct list *tree_merge_duplicates(struct term *term)
+static void set_pos(void *a, size_t position)
+{
+	(void)a;
+	(void)position;
+}
+
+struct tree *tree_merge_duplicates(struct term *term, void **all_trees)
 {
 	debug("building the merkle tree and deduplication set\n");
 
@@ -260,22 +271,25 @@ struct list *tree_merge_duplicates(struct term *term)
 	// construct priority queue while deleting set
 	// ~> sorts the candidates by get_pri
 	debug("constructing priority queue\n");
-	struct pqueue *prioritized = pqueue_init(2 << 15, cmp_pri, get_pri);
+	struct pqueue *prioritized =
+		pqueue_init(2 << 15, cmp_pri, get_pri, set_pos);
 	if (!prioritized)
 		fatal("can't create pqueue\n");
 	while (set) {
-		struct set_element *element = *(struct set_element **)set;
+		struct hash_to_list *element = *(struct hash_to_list **)set;
 		pqueue_insert(prioritized, element->list);
 		tdelete(element, &set, hash_compare);
 		free(element);
 	}
 
-	struct list *final = list_end;
 	struct list *invalidated = list_end;
 
 	// add longest (=> blueprint/structure of expression)
 	struct list *longest = pqueue_pop(prioritized);
-	final = list_add(final, longest->data);
+	struct hash_to_tree *element = malloc(sizeof(*element));
+	element->hash = ((struct tree *)longest->data)->hash;
+	element->tree = longest->data;
+	tsearch(element, all_trees, hash_compare);
 
 	debug("iterating priority queue, invalidating duplicates\n");
 	struct list *iterator;
@@ -294,7 +308,14 @@ struct list *tree_merge_duplicates(struct term *term)
 		// clone root so it doesn't get replaced by a ref to itself
 		struct tree *cloned_head = clone_tree_root(head);
 		cloned_head->state = INVALIDATED_TREE;
-		final = list_add(final, cloned_head);
+
+		element = malloc(sizeof(*element));
+		element->hash = cloned_head->hash;
+		element->tree = cloned_head;
+		struct hash_to_tree **handle =
+			tsearch(element, all_trees, hash_compare);
+		if (*handle != element)
+			free(element); // already exists, not needed
 
 		// invalidate all subtrees
 		// invalidated trees will be replaced with a reference
@@ -303,7 +324,7 @@ struct list *tree_merge_duplicates(struct term *term)
 			invalidate_tree(list->data, list->val);
 
 			// keep a ref for later replacement
-			((struct tree *)list->data)->state = final->val - 1;
+			((struct tree *)list->data)->state = head->hash;
 
 			invalidated = list_add(invalidated, list->data);
 			list = list->next;
@@ -323,7 +344,7 @@ struct list *tree_merge_duplicates(struct term *term)
 	// destroy prioritized list
 	pqueue_free(prioritized);
 
-	return final;
+	return longest->data;
 }
 
 void tree_destroy(struct list *table)
