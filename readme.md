@@ -13,15 +13,17 @@ first show you some results:
 1.  The [bruijn](https://github.com/marvinborner/bruijn) expression
     `fac (+30)`, where `fac` is the factorial implementation from
     `std/Math`:
-    - the original expression takes 2000 bytes in bit-encoded BLC
-    - the same expression in BLoC needs only 423 bytes
+    - the original expression takes 1200 bytes in bit-encoded BLC
+    - the same expression in BLoC needs only 348 bytes
 2.  [My
     solution](https://github.com/marvinborner/bruijn/blob/main/samples/aoc/2022/01/solve.bruijn)
     for the “Advent of Code” challenge
     [2022/01](https://adventofcode.com/2022/day/1) in
     [bruijn](https://github.com/marvinborner/bruijn):
     - the original expression takes 6258 bytes in bit-encoded BLC
-    - the same expression in BLoC needs only 1169 bytes
+    - the same expression in BLoC needs only 946 bytes
+
+You can find these examples in `test/`.
 
 ## Format
 
@@ -50,7 +52,7 @@ following derivation of normal bit-encoded BLC:
 
 (\*): The encoding of indices is quite special: $I=XA$, where
 $X\in\\{00,01,10,11\\}$ and length of binary index $A$ is
-$L(A)\in\\{1,2,4,8\\}$ byte respectively.
+$L(A)\in\\{1,2,4,8\\}$ byte respectively (see `src/{build,parse}.c`).
 
 The final program will be in the last entry. The indices start counting
 from the number of entries down to 0.
@@ -100,13 +102,3 @@ There seem to be problems with *very* big files:
 comparison test. I’ve not been able to reproduce this bug with any other
 file and 8cc itself is too huge to comfortably debug the issue. If
 you’re reading this: Please help me :(
-
-Also the current optimizer does not always make the best deduplication
-choices. It seems like finding the optimal deduplications requires quite
-complex algorithms which would probably be rather inefficient.
-
-For example, as of right now the length of an expression as seen by the
-deduplicator doesn’t consider the change of occurrence count when
-sub-expressions get replaced by a reference to another expression. This
-results in entries like `(0 <1234>)` that would not have needed to be
-deduplicated.

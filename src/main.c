@@ -107,7 +107,7 @@ static void test(char *input)
 	char *input_2 = read_file(temp_blc);
 	struct term *parsed_2 = parse_blc(input_2);
 	fseek(temp_blc, 0, SEEK_END);
-	fprintf(stderr, "size blc: ~%lu\n", ftell(temp_blc) / 8);
+	fprintf(stderr, "size blc: %lu\n", ftell(temp_blc) / 8 + 1);
 	fclose(temp_blc);
 	free(input_2);
 	debug("parsed reconstructed blc\n");

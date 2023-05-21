@@ -71,9 +71,14 @@ static struct term *parse_bloc_bblc(const char *term, size_t *bit)
 		(*bit)++;
 	} else if (!BIT_AT(*bit) && BIT_AT(*bit + 1) && BIT_AT(*bit + 2)) {
 		(*bit) += 3;
+
+		// selected bit pattern, see readme
+		int sel = (2 << (BIT_AT(*bit) * 2 + BIT_AT(*bit + 1) + 2));
+		(*bit) += 2;
+
 		res = new_term(REF);
-		short index = 0;
-		for (int i = 0; i < 16; i++) {
+		size_t index = 0;
+		for (int i = 0; i < sel; i++) {
 			index |= (BIT_AT(*bit) >> (7 - (*bit % 8))) << i;
 			(*bit) += 1;
 		}

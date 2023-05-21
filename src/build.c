@@ -46,9 +46,28 @@ static void rec_write_bblc(struct tree *tree, FILE *file, char *byte, int *bit)
 		write_bit(1, file, byte, bit);
 		write_bit(1, file, byte, bit);
 
-		// TODO: The bit-order of encoded shorts is kinda arbitrary
-		short ref = tree->u.ref.table_index;
-		for (int i = 0; i < 16; i++)
+		int ref = tree->u.ref.table_index;
+		int bits = 0;
+
+		// write index length bit prefixes
+		if (ref < 2 << 7) {
+			bits = 8;
+			write_bit(0, file, byte, bit);
+			write_bit(0, file, byte, bit);
+		} else if (ref < 2 << 15) {
+			bits = 16;
+			write_bit(0, file, byte, bit);
+			write_bit(1, file, byte, bit);
+		} else if (ref < 2 << 31) {
+			bits = 32;
+			write_bit(1, file, byte, bit);
+			write_bit(0, file, byte, bit);
+		} else if (ref < 2 << 63) {
+			bits = 64; // i wanna see that program lol
+			write_bit(1, file, byte, bit);
+			write_bit(1, file, byte, bit);
+		}
+		for (int i = 0; i < bits; i++)
 			write_bit((ref >> i) & 1, file, byte, bit);
 		break;
 	default:
