@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef uint32_t hash_t;
+typedef uint64_t hash_t;
 
-hash_t hash(const uint8_t *key, size_t len, uint32_t seed);
+hash_t hash(const void *key, int len, uint64_t seed);
 
 #endif

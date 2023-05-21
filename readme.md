@@ -10,12 +10,17 @@ BLoC and heavily reduces its size.
 Before explaining the format or its optimization techniques, let me
 first show you some results:
 
-1.  The [bruijn](https://github.com/marvinborner/bruijn) expression
+1.  x86 C compiler [8cc](https://github.com/rui314/8cc) translated [to
+    lambda calculus](https://github.com/woodrush/lambda-8cc):
+    - the original expression takes ~5M bytes in bit-encoded BLC
+    - the same expression in BLoC needs only ~650K bytes (which is
+      around 2x the original 8cc!)
+2.  The [bruijn](https://github.com/marvinborner/bruijn) expression
     `fac (+30)`, where `fac` is the factorial implementation from
     `std/Math`:
     - the original expression takes 1200 bytes in bit-encoded BLC
     - the same expression in BLoC needs only 348 bytes
-2.  [My
+3.  [My
     solution](https://github.com/marvinborner/bruijn/blob/main/samples/aoc/2022/01/solve.bruijn)
     for the “Advent of Code” challenge
     [2022/01](https://adventofcode.com/2022/day/1) in
@@ -94,11 +99,3 @@ As of right now, expressions **don’t** get beta-reduced or manipulated
 in any other way. As an idea for the future, long expressions could get
 reduced using different techniques/depths and then get replaced with the
 shortest one (as fully reduced expressions aren’t necessarily shorter).
-
-## Improvements
-
-There seem to be problems with *very* big files:
-[8cc](https://github.com/woodrush/lambda-8cc) does not pass the bloc-blc
-comparison test. I’ve not been able to reproduce this bug with any other
-file and 8cc itself is too huge to comfortably debug the issue. If
-you’re reading this: Please help me :(
