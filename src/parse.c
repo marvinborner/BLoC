@@ -43,7 +43,7 @@ struct term *parse_blc(const char *term)
 	return rec_blc(&term);
 }
 
-#define BIT_AT(i) (term[(i) / 8] & (1 << (7 - ((i) % 8))))
+#define BIT_AT(i) ((term[(i) / 8] & (1 << (7 - ((i) % 8)))) >> (7 - ((i) % 8)))
 
 // parses bloc's bit-encoded blc
 // 00M -> abstraction of M
@@ -79,7 +79,7 @@ static struct term *parse_bloc_bblc(const char *term, size_t *bit)
 		res = new_term(REF);
 		size_t index = 0;
 		for (int i = 0; i < sel; i++) {
-			index |= (BIT_AT(*bit) >> (7 - (*bit % 8))) << i;
+			index |= BIT_AT(*bit) << i;
 			(*bit) += 1;
 		}
 		res->u.ref.index = index;
