@@ -46,19 +46,19 @@ struct term *parse_blc(const char *term)
 #define BIT_AT(i) ((term[(i) / 8] & (1 << (7 - ((i) % 8)))) >> (7 - ((i) % 8)))
 
 // parses bloc's bit-encoded blc
-// 00M -> abstraction of M
-// 010MN -> application of M and N
+// 010M -> abstraction of M
+// 00MN -> application of M and N
 // 1X0 -> bruijn index, amount of 1s in X
 // 011I -> 2B index to entry
 static struct term *parse_bloc_bblc(const char *term, size_t *bit)
 {
 	struct term *res = 0;
-	if (!BIT_AT(*bit) && !BIT_AT(*bit + 1)) {
-		(*bit) += 2;
+	if (!BIT_AT(*bit) && BIT_AT(*bit + 1) && !BIT_AT(*bit + 2)) {
+		(*bit) += 3;
 		res = new_term(ABS);
 		res->u.abs.term = parse_bloc_bblc(term, bit);
-	} else if (!BIT_AT(*bit) && BIT_AT(*bit + 1) && !BIT_AT(*bit + 2)) {
-		(*bit) += 3;
+	} else if (!BIT_AT(*bit) && !BIT_AT(*bit + 1)) {
+		(*bit) += 2;
 		res = new_term(APP);
 		res->u.app.lhs = parse_bloc_bblc(term, bit);
 		res->u.app.rhs = parse_bloc_bblc(term, bit);

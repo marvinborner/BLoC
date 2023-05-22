@@ -13,20 +13,20 @@ first show you some results:
 1.  x86 C compiler [8cc](https://github.com/rui314/8cc) translated [to
     lambda calculus](https://github.com/woodrush/lambda-8cc):
     - the original expression takes ~5M bytes in bit-encoded BLC
-    - the same expression in BLoC needs only ~650K bytes (which is
+    - the same expression in BLoC needs only ~640K bytes (which is
       around 2x the original 8cc!)
 2.  The [bruijn](https://github.com/marvinborner/bruijn) expression
     `fac (+30)`, where `fac` is the factorial implementation from
     `std/Math`:
     - the original expression takes 1200 bytes in bit-encoded BLC
-    - the same expression in BLoC needs only 348 bytes
+    - the same expression in BLoC needs only 349 bytes
 3.  [My
     solution](https://github.com/marvinborner/bruijn/blob/main/samples/aoc/2022/01/solve.bruijn)
     for the “Advent of Code” challenge
     [2022/01](https://adventofcode.com/2022/day/1) in
     [bruijn](https://github.com/marvinborner/bruijn):
     - the original expression takes 6258 bytes in bit-encoded BLC
-    - the same expression in BLoC needs only 946 bytes
+    - the same expression in BLoC needs only 935 bytes
 
 You can find these examples in `test/`.
 
@@ -50,8 +50,8 @@ following derivation of normal bit-encoded BLC:
 
 | prefix           | content                       |
 |:-----------------|:------------------------------|
-| 00M              | abstraction of expression `M` |
-| 010MN            | application of `M` and `N`    |
+| 010M             | abstraction of expression `M` |
+| 00MN             | application of `M` and `N`    |
 | 1<sup>i+1</sup>0 | bruijn index `i`              |
 | 011I             | index\* to an entry           |
 
@@ -83,6 +83,9 @@ A possible encoding in BLoC:
 Even in this small example BLoC uses less space than BLC (0x34 vs. 0x42
 bytes). Depending on the content of `M` and `N`, this could have
 potentially been compressed even more.
+
+You can dump the bloc table using the `-d/--dump` flag of `bloc`. Some
+additional dumps for testing can also be found in `test/`.
 
 ## Optimizer
 

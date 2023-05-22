@@ -26,12 +26,12 @@ static void rec_write_bblc(struct tree *tree, FILE *file, char *byte, int *bit)
 	switch (tree->type) {
 	case ABS:
 		write_bit(0, file, byte, bit);
+		write_bit(1, file, byte, bit);
 		write_bit(0, file, byte, bit);
 		rec_write_bblc(tree->u.abs.term, file, byte, bit);
 		break;
 	case APP:
 		write_bit(0, file, byte, bit);
-		write_bit(1, file, byte, bit);
 		write_bit(0, file, byte, bit);
 		rec_write_bblc(tree->u.app.lhs, file, byte, bit);
 		rec_write_bblc(tree->u.app.rhs, file, byte, bit);
