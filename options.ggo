@@ -3,7 +3,7 @@ version "1.0"
 purpose "Tool for converting to/from BLC and BLoC"
 
 option "input" i "input file" string required
-option "output" o "output file" default="out" string optional
+option "output" o "output file" string optional
 option "verbose" v "enable debug logging output" flag off
 option "from-blc" b "convert from BLC to BLoC" flag off
 option "from-bloc" B "convert from BLoC to BLC" flag off

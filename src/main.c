@@ -134,7 +134,7 @@ static void from_blc(char *input, char *output_path)
 	debug("optimizing tree\n");
 	struct list *table = optimize_tree(tree, &all_trees);
 
-	FILE *file = fopen(output_path, "wb");
+	FILE *file = output_path ? fopen(output_path, "wb") : stdout;
 	write_bloc(table, file);
 	fclose(file);
 
@@ -153,7 +153,7 @@ static void from_bloc(char *input, char *output_path, int dump)
 	if (dump)
 		print_bloc(bloc);
 
-	FILE *file = fopen(output_path, "wb");
+	FILE *file = output_path ? fopen(output_path, "wb") : stdout;
 	write_blc(bloc, file);
 	fclose(file);
 

@@ -10,22 +10,22 @@ void print_bruijn(struct term *term)
 {
 	switch (term->type) {
 	case ABS:
-		printf("[");
+		fprintf(stderr, "[");
 		print_bruijn(term->u.abs.term);
-		printf("]");
+		fprintf(stderr, "]");
 		break;
 	case APP:
-		printf("(");
+		fprintf(stderr, "(");
 		print_bruijn(term->u.app.lhs);
-		printf(" ");
+		fprintf(stderr, " ");
 		print_bruijn(term->u.app.rhs);
-		printf(")");
+		fprintf(stderr, ")");
 		break;
 	case VAR:
-		printf("%d", term->u.var.index);
+		fprintf(stderr, "%d", term->u.var.index);
 		break;
 	case REF:
-		printf("<%ld>", term->u.ref.index);
+		fprintf(stderr, "<%ld>", term->u.ref.index);
 		break;
 	default:
 		fatal("invalid type %d\n", term->type);
@@ -56,15 +56,15 @@ void print_blc(struct term *term)
 
 void print_bloc(struct bloc_parsed *bloc)
 {
-	printf("\n=== START BLOC ===\n");
-	printf("| entries:\t%ld\n", bloc->length);
+	fprintf(stderr, "\n=== START BLOC ===\n");
+	fprintf(stderr, "| entries:\t%ld\n", bloc->length);
 	for (size_t i = 0; i < bloc->length - 1; i++) {
-		printf("| entry %ld:\t", bloc->length - i - 2);
+		fprintf(stderr, "| entry %ld:\t", bloc->length - i - 2);
 		print_bruijn(bloc->entries[i]);
-		printf("\n");
+		fprintf(stderr, "\n");
 	}
-	printf("| final:\t");
+	fprintf(stderr, "| final:\t");
 	print_bruijn(bloc->entries[bloc->length - 1]);
-	printf("\n");
-	printf("=== END BLOC ===\n\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "=== END BLOC ===\n\n");
 }
