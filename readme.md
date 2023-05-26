@@ -102,3 +102,10 @@ As of right now, expressions **don’t** get beta-reduced or manipulated
 in any other way. As an idea for the future, long expressions could get
 reduced using different techniques/depths and then get replaced with the
 shortest one (as fully reduced expressions aren’t necessarily shorter).
+
+## Libraries
+
+- [pqueue](https://github.com/vy/libpqueue/) \[BSD 2-Clause\]: Simple
+  priority queue implementation
+- [xxHash](https://github.com/Cyan4973/xxHash/) \[BSD 2-Clause\]:
+  Extremely fast hash algorithm

@@ -9,6 +9,6 @@
 
 typedef uint64_t hash_t;
 
-hash_t hash(const void *key, int len, uint64_t seed);
+hash_t hash(const void *data, size_t len, uint64_t seed);
 
 #endif
