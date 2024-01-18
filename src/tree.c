@@ -227,9 +227,11 @@ struct tree *tree_merge_duplicates(struct term *term, void **all_trees)
 
 	// get the deduplication candidates
 	void *set = 0;
-	build_tree(term, &set);
-	if (!set)
-		fatal("term too short\n");
+	struct tree *built = build_tree(term, &set);
+	if (!set) {
+		debug("term not suitable for deduplication, emitting directly\n");
+		return built;
+	}
 
 	// construct priority queue while deleting set
 	// ~> sorts the candidates by get_pri
