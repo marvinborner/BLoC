@@ -3,7 +3,7 @@
 set -e
 
 FAIL="\033[0;31m[FAIL]\033[0m "
-SUCC="\033[0;32m[SUCC]\033[0m "
+SUCC="\033[0;32m[ OK ]\033[0m "
 
 for file in *.blc; do
 	../build/bloc --from-blc -i "$file" -o ../build/"$file".bloc

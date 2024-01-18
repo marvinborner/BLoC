@@ -1,9 +1,14 @@
 # BLoC
 
 This project proposes a file format for programs encoded in binary
-lambda calculus (BLC). Its main goal is minimal redundancy and therefore
-allowing maximal optimization. The included `bloc` tool converts BLC to
-BLoC and heavily reduces its size.
+lambda calculus (BLC). Its main goal is to minimize redundancy by
+incorporating reference-based term sharing, while remaining easy to work
+with. The included `bloc` tool converts BLC to BLoC and greatly reduces
+its size.
+
+The additional tool `blocade` (found in
+[BLoCade](https://github.com/marvinborner/blocade)) can compile `.bloc`
+files to various targets, including a shared pure BLC representation.
 
 ## Results
 
