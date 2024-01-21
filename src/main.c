@@ -17,6 +17,9 @@
 // automatically generated using gengetopt
 #include "cmdline.h"
 
+// min size for a term to be considered for deduplication
+size_t min_size = 0;
+
 #define BUF_SIZE 1024
 static char *read_stdin(void)
 {
@@ -178,6 +181,9 @@ int main(int argc, char **argv)
 
 	if (!input)
 		return 1;
+
+	min_size = args.min_size_arg;
+	debug("min tree size: %lu\n", min_size);
 
 	if (args.test_flag && args.from_blc_flag && !args.from_bloc_flag) {
 		test(input);

@@ -8,4 +8,5 @@ option "verbose" v "enable debug logging output" flag off
 option "from-blc" b "convert from BLC to BLoC" flag off
 option "from-bloc" B "convert from BLoC to BLC" flag off
 option "dump" d "dump bloc file" dependon="from-bloc" flag off
+option "min-size" m "minimum term size for deduplication" default="10" long optional
 option "test" t "compare BLC with generated BLoC" dependon="from-blc" flag off

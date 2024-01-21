@@ -33,6 +33,7 @@ compile: $(BUILD) $(OBJS) $(BUILD)/bloc
 
 clean:
 	@rm -rf $(BUILD)/*
+	@rm -f $(SRC)/cmdline.*
 
 install:
 	@install -m 755 $(BUILD)/bloc $(DESTDIR)$(PREFIX)/bin/

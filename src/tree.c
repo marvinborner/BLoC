@@ -55,6 +55,7 @@ static int hash_compare(const void *_a, const void *_b)
 // applies the hash function to the tree's elements (similar to merkle trees)
 // also creates a set of lists with deduplication candidates
 // TODO: as above: rethink hash choice
+extern size_t min_size;
 static struct tree *build_tree(struct term *term, void **set)
 {
 	struct tree *tree = malloc(sizeof(*tree));
@@ -90,7 +91,7 @@ static struct tree *build_tree(struct term *term, void **set)
 		fatal("invalid type %d\n", term->type);
 	}
 
-	if (tree->size < 10) // not suitable for deduplication
+	if (tree->size < min_size) // not suitable for deduplication
 		return tree;
 
 	struct hash_to_list *element = malloc(sizeof(*element));
